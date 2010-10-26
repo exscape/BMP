@@ -19,12 +19,12 @@ if DEBUG: print 'First header:', bmp_header
 if magic != "BM":
 	die("Sorry, I can't read this file; invalid magic number")
 
-header_size = bmp_header[2]
+bmp_header_len = bmp_header[2]
 bitmap_offset = bmp_header[5]
 prevpos = f.tell()
 f.seek(0, 2) # Seek to end of file, to check its size
-if f.tell() != header_size:
-	die("Malformed header; file size in header doesn't match actual file size; {0} vs {1}".format(f.tell(), header_size))
+if f.tell() != bmp_header_len:
+	die("Malformed header; file size in header doesn't match actual file size; {0} vs {1}".format(f.tell(), bmp_header_len))
 f.seek(prevpos, 0)
 
 if DEBUG: print "first header good; data offset = {0}".format(bitmap_offset)
