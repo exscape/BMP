@@ -37,11 +37,10 @@ dib_header_len = unpack('I', f.read(4))[0]
 
 if dib_header_len == 64:
 	die("V2 DIB-header BMPs not supported")
-elif dib_header_len != 40:
-	warn("V1/V4/V5 DIB header. Stuff may break... but should work.")
+#elif dib_header_len != 40:
+#	warn("V1/V4/V5 DIB header. Stuff may break... but should work.")
 
 f.seek(-4, 1) # Re-read the header
-dib_header = "" # Lexical scoping
 
 if dib_header_len == 12:
 	# OS/2 V1 header
