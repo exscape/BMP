@@ -17,14 +17,14 @@ if DEBUG: print 'BMP header:', bmp_header
 
 ### Validate the header
 if magic != "BM":
-	die("Sorry, I can't read this file; invalid magic number")
+	die("Sorry, I can't read this file; invalid magic")
 
-bmp_header_len = bmp_header[2]
+file_size = bmp_header[2]
 bitmap_offset = bmp_header[5]
 prevpos = f.tell()
 f.seek(0, 2) # Seek to end of file, to check its size
-if f.tell() != bmp_header_len:
-	die("Malformed header; file size in header doesn't match actual file size; {0} vs {1}".format(f.tell(), bmp_header_len))
+if f.tell() != file_size:
+	die("Malformed header; file size in header doesn't match actual file size; {0} vs {1}".format(f.tell(), file_size))
 f.seek(prevpos, 0)
 
 if DEBUG: print "BMP header good; data offset = {0}".format(bitmap_offset)
@@ -52,6 +52,8 @@ print 'DIB header (relevant parts):', dib_header
 
 (dib_header_len,width,height,color_planes,bpp) = dib_header
 
+if color_planes != 1:
+	die("Invalid/corrupt DIB header; # of color planes must be 1")
 if bpp != 24:
 	die("Only 24 bits per pixel is supported at the moment; this image appears to be {0}".format(bpp))
 
