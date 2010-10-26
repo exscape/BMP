@@ -10,7 +10,13 @@ def die(str="Unspecified error"):
 def warn(str="FIXME"):
 	sys.stderr.write("Warning: {0}\n".format(str))
 
-f = open('test.bmp', 'r')
+filename = ""
+if len(sys.argv) == 1:
+	filename = "test.bmp"
+else:
+	filename = sys.argv[1]
+
+f = open(filename, 'r')
 bmp_header = unpack('<2bIHHI', f.read(14))
 magic = str(chr(bmp_header[0])) + chr(bmp_header[1])
 if DEBUG: print 'BMP header:', bmp_header
@@ -24,7 +30,7 @@ bitmap_offset = bmp_header[5]
 prevpos = f.tell()
 f.seek(0, 2) # Seek to end of file, to check its size
 if f.tell() != file_size:
-	die("Malformed header; file size in header doesn't match actual file size; {0} vs {1} bytes".format(f.tell(), file_size))
+	die("Malformed header; file size in header doesn't match actual file size; {0} (actual) vs {1} (header) bytes".format(f.tell(), file_size))
 f.seek(prevpos, 0)
 
 dib_header_len = unpack('I', f.read(4))[0]
