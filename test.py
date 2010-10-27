@@ -1,5 +1,5 @@
 import sys
-from BMP import BMP,DEBUG
+from bmp import BMP,DEBUG
 
 if len(sys.argv) == 1:
 	filename = "3x3.bmp"
@@ -8,7 +8,7 @@ else:
 
 b = BMP(filename)
 
-print 'Image is {0}x{1} @ {2} bpp'.format(b.dib_header["width"], b.dib_header["height"], b.dib_header["bpp"])
+print 'Image is {0}x{1} @ {2} bpp'.format(b.width, b.height, b.bpp)
 
 print 'Working...',
 sys.stdout.flush()

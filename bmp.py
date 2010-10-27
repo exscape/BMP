@@ -23,29 +23,34 @@ class BMP(object):
 		except IOError as e:
 			die (str(e))
 		
-		# Read header
-		self.file.seek(0)
-		header = struct.unpack('<2bIHHI', self.file.read(self.bmp_header_len))
+		###
+		### Read BMP header
+		###
 
-		if DEBUG: print 'BMP header:', header
+		self.file.seek(0)
+		bmp_header = struct.unpack('<2bIHHI', self.file.read(self.bmp_header_len))
+
+		if DEBUG: print 'BMP header:', bmp_header
 
 		# Verify magic
-		magic = str(chr(header[0])) + chr(header[1])
+		magic = str(chr(bmp_header[0])) + chr(bmp_header[1])
 		if magic != "BM":
 			die("Invalid magic")
 		
 		# Verify size
 		prevpos = self.file.tell()
 		self.file.seek(0, 2)
-		if self.file.tell() != header[2]:
-			die("Malformed header; file size in header doesn't match file size; {0} (actual) vs {1} (header) bytes".format(f.tell(), file_size))
+		if self.file.tell() != bmp_header[2]:
+			die("Malformed BMP header; file size in header doesn't match file size; {0} (actual) vs {1} (header) bytes".format(f.tell(), file_size))
 		self.file.seek(prevpos)
 
-		# All OK; return a dictionary containing the two relevant fields - 
-		# file size and bitmap data offset
-		self.bmp_header = {'file_size': header[2], 'bitmap_offset': header[5]}
+		self.file_size = bmp_header[2]
+		self.bitmap_offset = bmp_header[5]
 
+		###
 		### Read DIB header
+		###
+
 		self.file.seek(self.bmp_header_len)
 		self.dib_header_len = struct.unpack('I', self.file.read(4))[0]
 
@@ -66,7 +71,10 @@ class BMP(object):
 			die("Unsupported/corrupt DIB header")
 
 		self.dib_header = {'dib_header_len': self.dib_header_len, 'color_planes': raw_dib_header[3], 'width': raw_dib_header[1], 'height': raw_dib_header[2], 'bpp': raw_dib_header[4]}
-		
+		self.width = raw_dib_header[1]
+		self.height = raw_dib_header[2]
+		self.bpp = raw_dib_header[4]
+
 		if self.dib_header["color_planes"] != 1:
 			die("Invalid/corrupt DIB header; # of color planes must be 1")
 
@@ -90,7 +98,7 @@ class BMP(object):
 		### Read the BMP data
 
 		# We need to skip te rest of the header, if any, to get to the actual data
-		self.file.seek(self.bmp_header["bitmap_offset"]) 
+		self.file.seek(self.bitmap_offset) 
 		self.bitmap_data = self.file.read()
 		if DEBUG: print '{0} bytes of bitmap data read'.format(len(self.bitmap_data))
 		if DEBUG: print 'Padding per row should be {0} bytes'.format(self.padding_size)
