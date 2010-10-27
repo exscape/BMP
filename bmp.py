@@ -81,9 +81,7 @@ padding_size = width & 3 # Magic! (Quite simple, actually.)
 
 if DEBUG: print 'Padding per row should be {0} bytes'.format(padding_size)
 
-mod_bitmap_list = map(lambda x: chr(ord(x)/2), bitmap_data)
-mod_bitmap = "".join(mod_bitmap_list)
-print len(bitmap_data), len(mod_bitmap)
+mod_bitmap = "".join(map(lambda x: chr(ord(x)/2), bitmap_data))
 
 f.seek(0)
 all_headers = f.read(bmp_header_len + dib_header_len)
