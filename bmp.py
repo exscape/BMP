@@ -68,3 +68,14 @@ f.seek(bitmap_offset)
 
 bitmap_data = f.read()
 if DEBUG: print '{0} bytes of bitmap data read'.format(len(bitmap_data))
+
+# Calculate padding. Each row needs to be 4-byte aligned.
+# If the width is 1, we use 1*3 = 3 bytes for bitmap data, and need 1 for padding.
+# If the width is 2, we use 2*3 = 6 bytes for bitmap data, and need 2 for padding.
+# If the width is 3, we use 3*3 = 9 bytes for bitmap data, and need 3 for padding.
+# If the width is 4, we use 4*3 = 12 bytes for bitmap data, and need 0 for padding.
+# If the width is 4, we use 5*3 = 15 bytes for bitmap data, and need 1 for padding.
+# ... etc.
+padding_size = (4 - ((width*3) % 4)) % 4
+
+if DEBUG: print 'Padding per row should be {0} bytes'.format(padding_size)
