@@ -15,7 +15,8 @@ else:
 	filename = sys.argv[1]
 
 f = open(filename, 'r')
-bmp_header = struct.unpack('<2bIHHI', f.read(14))
+bmp_header_len = 14
+bmp_header = struct.unpack('<2bIHHI', f.read(bmp_header_len))
 magic = str(chr(bmp_header[0])) + chr(bmp_header[1])
 if DEBUG: print 'BMP header:', bmp_header
 
@@ -76,6 +77,20 @@ if DEBUG: print '{0} bytes of bitmap data read'.format(len(bitmap_data))
 # If the width is 4, we use 4*3 = 12 bytes for bitmap data, and need 0 for padding.
 # If the width is 4, we use 5*3 = 15 bytes for bitmap data, and need 1 for padding.
 # ... etc.
-padding_size = (4 - ((width*3) % 4)) % 4
+padding_size = width & 3 # Magic! (Quite simple, actually.)
 
 if DEBUG: print 'Padding per row should be {0} bytes'.format(padding_size)
+
+mod_bitmap = ""
+mod_bitmap_list = map(lambda x: chr(ord(x)/2), bitmap_data)
+for char in mod_bitmap_list:
+	mod_bitmap += char
+print len(bitmap_data), len(mod_bitmap)
+
+f.seek(0)
+all_headers = f.read(bmp_header_len + dib_header_len)
+
+out = open('out.bmp', 'w')
+out.write(all_headers)
+out.write(mod_bitmap)
+out.close()
