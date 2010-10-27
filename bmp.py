@@ -83,3 +83,14 @@ class BMP(object):
 		self.padding_size = self.dib_header["width"] & 3 # Magic! (Quite simple, actually.)
 
 		if DEBUG: print 'DIB header:', self.dib_header
+
+		self.file.seek(0)
+		self.all_headers = self.file.read(self.bmp_header_len + self.dib_header["dib_header_len"])
+
+		### Read the BMP data
+
+		# We need to skip te rest of the header, if any, to get to the actual data
+		self.file.seek(self.bmp_header["bitmap_offset"]) 
+		self.bitmap_data = self.file.read()
+		if DEBUG: print '{0} bytes of bitmap data read'.format(len(self.bitmap_data))
+		if DEBUG: print 'Padding per row should be {0} bytes'.format(self.padding_size)
