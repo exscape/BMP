@@ -23,6 +23,8 @@ class BMP(object):
 			self.file = open(filename, 'r')
 		except IOError as e:
 			die (str(e))
+
+		print 'Opened file {0}...'.format(filename)
 		
 		###
 		### Read BMP header
@@ -42,7 +44,7 @@ class BMP(object):
 		prevpos = self.file.tell()
 		self.file.seek(0, 2)
 		if self.file.tell() != bmp_header[2]:
-			die("Malformed BMP header; file size in header doesn't match file size; {0} (actual) vs {1} (header) bytes".format(f.tell(), file_size))
+			die("Malformed BMP header; file size in header doesn't match file size; {0} (actual) vs {1} (header) bytes".format(self.file.tell(), bmp_header[2]))
 		self.file.seek(prevpos)
 
 		# Save useful header info
@@ -81,6 +83,10 @@ class BMP(object):
 		self.height = raw_dib_header[2]
 		self.bpp = raw_dib_header[4]
 
+		if self.height < 0:
+			self.height = -self.height
+			warn("Bitmap pixel data is stored \"upside down\"")
+
 		# Some basic error checking
 		if self.dib_header["color_planes"] != 1:
 			die("Invalid/corrupt DIB header; # of color planes must be 1")
@@ -95,14 +101,14 @@ class BMP(object):
 		# If the width is 4, we use 4*3 = 12 bytes for bitmap data, and need 0 for padding.
 		# If the width is 5, we use 5*3 = 15 bytes for bitmap data, and need 1 for padding.
 		# ... etc.
-		self.padding_size = self.dib_header["width"] & 3 # Magic! (Quite simple, actually.)
+		self.padding_size = self.width & 3 # Magic! (Quite simple, actually.)
 
 		if DEBUG: print 'DIB header:', self.dib_header
 
 		# Save both headers as a binary blob that can be used when modifying the bitmap data,
 		# without changing image dimensions (affecting file size) or such
 		self.file.seek(0)
-		self.all_headers = self.file.read(self.bmp_header_len + self.dib_header["dib_header_len"])
+		self.all_headers = self.file.read(self.bmp_header_len + self.dib_header_len)
 
 		###
 		### Read the bitmap data
