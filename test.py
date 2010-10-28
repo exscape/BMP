@@ -1,3 +1,7 @@
+###
+### Simply divide all pixel values in half, creating a darker image than the original.
+###
+
 import sys
 from bmp import BMP,DEBUG
 

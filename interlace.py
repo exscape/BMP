@@ -1,3 +1,7 @@
+###
+### "Interlace" a picture - divide every second row's brightness by two, creating a striped appearance
+###
+
 import sys
 from bmp import BMP
 from cStringIO import StringIO

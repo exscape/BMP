@@ -1,3 +1,7 @@
+###
+### (Re)combine the red, green and blue color channels from three separate pictures of identical size into one.
+###
+
 import sys, struct
 from bmp import BMP
 from cStringIO import StringIO
