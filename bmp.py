@@ -112,3 +112,5 @@ class BMP(object):
 		self.bitmap_data = self.file.read()
 		if DEBUG: print '{0} bytes of bitmap data read'.format(len(self.bitmap_data))
 		if DEBUG: print 'Padding per row should be {0} bytes'.format(self.padding_size)
+
+		self.file.close()	
