@@ -42,9 +42,7 @@ for row_num in xrange(0, b.height):
 
 		out_bitmap_data += "".join( (chr(blue_pixel), chr(green_pixel), chr(red_pixel)) )
 
-	if r.padding_size > 0:
-		for i in range(0, r.padding_size):
-			out_bitmap_data += chr(0x00)
+	out_bitmap_data += chr(0x00) * r.padding_size
 
 	rf.seek(r.padding_size, 1)
 	gf.seek(g.padding_size, 1)

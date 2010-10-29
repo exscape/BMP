@@ -30,12 +30,12 @@ for row_num in xrange(0, b.height):
 		pixel = struct.unpack("3B", f.read(3))
 		row = chr(pixel[0]) + chr(pixel[1]) + chr(pixel[2]) + row
 
-	if b.padding_size > 0:
-		# Skip the padding in the input file
-		f.seek(b.padding_size, 1)
-		
-		# Write the padding to the output file
-		row += chr(0x00) * b.padding_size
+	# Skip the padding in the input file
+	f.seek(b.padding_size, 1)
+	
+	# Write the padding to the output file
+	row += chr(0x00) * b.padding_size
+
 	out.write(row)
 
 out.close()

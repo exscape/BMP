@@ -30,12 +30,10 @@ for row_num in xrange(0, img.height):
 		green_bitmap_data += "".join( (chr(0x00), chr(pixel[1]), chr(0x00)) )
 		blue_bitmap_data += "".join( (chr(pixel[0]), chr(0x00), chr(0x00)) )
 
-	if img.padding_size != 0:
-		for i in range(0, img.padding_size):
-			red_bitmap_data += chr(0x00)
-			blue_bitmap_data += chr(0x00)
-			green_bitmap_data += chr(0x00)
-		f.seek(img.padding_size, 1)
+	red_bitmap_data += chr(0x00) * img.padding_size
+	blue_bitmap_data += chr(0x00) * img.padding_size
+	green_bitmap_data += chr(0x00) * img.padding_size
+	f.seek(img.padding_size, 1)
 	
 # ... and then save the results, with unmodified headers, since the size, bpp etc. are all the same
 out_blue = open('out_blue.bmp', 'w')

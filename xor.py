@@ -37,10 +37,7 @@ for row_num in xrange(0, first.height):
 
 		out_bitmap_data += "".join( (chr(first_pixel[0] ^ second_pixel[0]), chr(first_pixel[1] ^ second_pixel[1]), chr(first_pixel[2] ^ second_pixel[2])) )
 
-	if first.padding_size > 0:
-		for i in range(0, first.padding_size):
-			out_bitmap_data += chr(0x00)
-
+	out_bitmap_data += chr(0x00) * first.padding_size
 	ff.seek(first.padding_size, 1)
 	sf.seek(second.padding_size, 1)
 	
