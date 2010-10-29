@@ -250,5 +250,4 @@ class BMP(object):
 			gf.seek(g.padding_size, 1)
 			bf.seek(b.padding_size, 1)
 
-		self = BMP(r.all_headers + out_bitmap_data, True)
-		return self
+		return BMP(r.all_headers + out_bitmap_data, True)
