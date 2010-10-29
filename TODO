@@ -1,3 +1,4 @@
-* Integrate certain functions in the class, i.e. horizontal and vertical flip, rotate, ...
-* Add a save method to the class, so that you can do stuff like b = BMP(filename), b.flip_horizontal(), b.save('out.bmp')
+* Rotate 90 and 270 degrees
+* Separate/recombine color channels integrated into the class?
+* XOR integrated?
 * ...
