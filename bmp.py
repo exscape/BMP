@@ -1,4 +1,5 @@
 import sys, struct
+from cStringIO import StringIO
 
 DEBUG=True
 
@@ -120,3 +121,46 @@ class BMP(object):
 		if DEBUG: print 'Padding per row should be {0} bytes'.format(self.padding_size)
 
 		self.file.close()	
+
+	def horizontal_flip(self):
+		mod_bitmap = ""
+
+		# Let's pretend it's a file to make things easy
+		f = StringIO(self.bitmap_data)
+		for row_num in xrange(0, self.height):
+			row = ""
+			for pix in xrange(0, self.width):
+				# Insert each pixel first on its respective row
+				pixel = struct.unpack("3B", f.read(3))
+				row = chr(pixel[0]) + chr(pixel[1]) + chr(pixel[2]) + row
+
+			# Skip the padding in the input file
+			f.seek(self.padding_size, 1)
+			
+			# Write the padding to the output file
+			row += chr(0x00) * self.padding_size
+			mod_bitmap += row
+		self.bitmap_data = mod_bitmap
+
+	def vertical_flip(self):
+		mod_bitmap = ""
+		rows = []
+
+		# Let's pretend it's a file to make things easy
+		f = StringIO(self.bitmap_data)
+		for row_num in xrange(0, self.height):
+			rows.append(f.read(self.width * 3 + self.padding_size))
+		for row in rows[::-1]:
+			 mod_bitmap += row
+		self.bitmap_data = mod_bitmap
+
+	def rotate_180(self):
+		self.vertical_flip()
+		self.horizontal_flip()
+
+	def save(self, filename):
+		f = open(filename, 'w')
+		f.write(self.all_headers)
+		f.write(self.bitmap_data)
+		f.close()
+
