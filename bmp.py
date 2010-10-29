@@ -5,7 +5,6 @@ DEBUG=True
 
 ###
 ### TODO: Add docstrings and comments; clean up code
-### TODO: Add code to create separate R/G/B pictures from one input image w/ dynamic naming
 ###
 
 def die(str="Unspecified error"):
@@ -19,13 +18,20 @@ def warn(str="FIXME"):
 class BMP(object):
 	bmp_header_len = 14
 
-	def __init__(self, filename):
-		try:
-			self.file = open(filename, 'r')
-		except IOError as e:
-			die (str(e))
+	def __init__(self, arg, open_as_data=False):
+		""" Ugly hack due to Python's lack of method overloading. This constructor can be used two ways:
+			1) BMP(filename[, False]) -> returns a BMP object with data read from the filename
+			2) BMP(bmp_data, [open_as_data=]True) -> returns a BMP object with data read from supplied string/blob. """
 
-		print 'Opened file {0}...'.format(filename)
+		if open_as_data == False:
+			try:
+				self.file = open(arg, 'r')
+			except IOError as e:
+				die (str(e))
+
+			print 'Opened file {0}...'.format(arg)
+		else:
+			self.file = StringIO(arg)
 		
 		###
 		### Read BMP header
@@ -167,3 +173,28 @@ class BMP(object):
 		f.write(self.all_headers)
 		f.write(self.bitmap_data)
 		f.close()
+
+	def rgb_split(self):
+		"""Splits one BMP object into three; one with only the red channel, one with the green, and one with the blue.
+		
+		Returns a tuple (R, G, B) of BMP instances."""
+
+		f = StringIO(self.bitmap_data)
+		red_data = self.all_headers
+		green_data = self.all_headers
+		blue_data = self.all_headers
+
+		for row_num in xrange(0, self.height):
+			for pix in xrange(0, self.width):
+				pixel = struct.unpack("3B", f.read(3))
+				red_data += chr(0x00) + chr(0x00) + chr(pixel[2])
+				green_data += chr(0x00) + chr(pixel[1]) + chr(0x00)
+				blue_data += chr(pixel[0]) + chr(0x00) + chr(0x00)
+
+			red_data += chr(0x00) * self.padding_size
+			blue_data += chr(0x00) * self.padding_size
+			green_data += chr(0x00) * self.padding_size
+			f.seek(self.padding_size, 1)
+			
+		# I'm not fond of the constructor hack... but it was the easiest way.
+		return (BMP(red_data, True), BMP(green_data, True), BMP(blue_data, True))
