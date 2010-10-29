@@ -141,6 +141,7 @@ class BMP(object):
 			row += chr(0x00) * self.padding_size
 			mod_bitmap += row
 		self.bitmap_data = mod_bitmap
+		return self
 
 	def vertical_flip(self):
 		mod_bitmap = ""
@@ -154,13 +155,15 @@ class BMP(object):
 			 mod_bitmap += row
 		self.bitmap_data = mod_bitmap
 
+		return self
+
 	def rotate_180(self):
 		self.vertical_flip()
 		self.horizontal_flip()
+		return self
 
 	def save(self, filename):
 		f = open(filename, 'w')
 		f.write(self.all_headers)
 		f.write(self.bitmap_data)
 		f.close()
-
