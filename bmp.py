@@ -18,10 +18,17 @@ def warn(str="FIXME"):
 class BMP(object):
 	bmp_header_len = 14
 
-	def __init__(self, arg, open_as_data=False):
-		""" Ugly hack due to Python's lack of method overloading. This constructor can be used two ways:
+	def __init__(self, arg=None, open_as_data=False):
+		""" Ugly hack due to Python's lack of method overloading. This constructor can be used in three ways:
 			1) BMP(filename[, False]) -> returns a BMP object with data read from the filename
-			2) BMP(bmp_data, [open_as_data=]True) -> returns a BMP object with data read from supplied string/blob. """
+			2) BMP(bmp_data, [open_as_data=]True) -> returns a BMP object with data read from supplied string/blob.
+			3) BMP() -> returns an "empty" BMP object that cannot be used except with rgb_merge(). """
+
+		if arg == None:
+			self.empty = True
+			return
+		else:
+			self.empty = False
 
 		if open_as_data == False:
 			try:
@@ -129,6 +136,9 @@ class BMP(object):
 		self.file.close()	
 
 	def horizontal_flip(self):
+		if self.empty == True:
+			die("Attempted to call horizontal_flip() on an empty BMP object!")
+
 		mod_bitmap = ""
 
 		# Let's pretend it's a file to make things easy
@@ -150,6 +160,9 @@ class BMP(object):
 		return self
 
 	def vertical_flip(self):
+		if self.empty == True:
+			die("Attempted to call vertical_flip() on an empty BMP object!")
+
 		mod_bitmap = ""
 		rows = []
 
@@ -164,11 +177,17 @@ class BMP(object):
 		return self
 
 	def rotate_180(self):
+		if self.empty == True:
+			die("Attempted to call rotate_180() on an empty BMP object!")
+
 		self.vertical_flip()
 		self.horizontal_flip()
 		return self
 
 	def save(self, filename):
+		if self.empty == True:
+			die("Attempted to call save() on an empty BMP object!")
+
 		f = open(filename, 'w')
 		f.write(self.all_headers)
 		f.write(self.bitmap_data)
@@ -178,6 +197,9 @@ class BMP(object):
 		"""Splits one BMP object into three; one with only the red channel, one with the green, and one with the blue.
 		
 		Returns a tuple (R, G, B) of BMP instances."""
+
+		if self.empty == True:
+			die("Attempted to call rgb_split() on an empty BMP object!")
 
 		f = StringIO(self.bitmap_data)
 		red_data = self.all_headers
@@ -198,3 +220,35 @@ class BMP(object):
 			
 		# I'm not fond of the constructor hack... but it was the easiest way.
 		return (BMP(red_data, True), BMP(green_data, True), BMP(blue_data, True))
+
+	def rgb_merge(self, r, g, b):
+		""" (Re)combine the red, green and blue color channels from three separate pictures of identical size into one. """
+		if self.empty != True:
+			 warn("Running rgb_merge() on a non-empty BMP; the existing data will be overwritten!")
+
+		# Ugh...
+		if len(set((r.width, g.width, b.width))) != 1 or len(set((r.height, g.height, b.height))) != 1 or len(set((r.bpp, g.bpp, b.bpp))) != 1:
+			die("The dimensions and/or bpp differs between the input images to rgb_merge()!")
+
+		rf = StringIO(r.bitmap_data)
+		gf = StringIO(g.bitmap_data)
+		bf = StringIO(b.bitmap_data)
+
+		out_bitmap_data = ""
+
+		for row_num in xrange(0, b.height):
+			for pix in xrange(0, b.width):
+				red_pixel = struct.unpack("3B", rf.read(3))[2]
+				green_pixel = struct.unpack("3B", gf.read(3))[1]
+				blue_pixel = struct.unpack("3B", bf.read(3))[0]
+
+				out_bitmap_data += "".join( (chr(blue_pixel), chr(green_pixel), chr(red_pixel)) )
+
+			out_bitmap_data += chr(0x00) * r.padding_size
+
+			rf.seek(r.padding_size, 1)
+			gf.seek(g.padding_size, 1)
+			bf.seek(b.padding_size, 1)
+
+		self = BMP(r.all_headers + out_bitmap_data, True)
+		return self
