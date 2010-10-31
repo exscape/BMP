@@ -251,3 +251,8 @@ class BMP(object):
 			bf.seek(b.padding_size, 1)
 
 		return BMP(r.all_headers + out_bitmap_data, True)
+
+	def invert(self):
+		""" Invert the colors in the image. """
+		self.bitmap_data = "".join(map(lambda x: chr(255-ord(x)), self.bitmap_data))
+		return self
