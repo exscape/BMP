@@ -45,25 +45,24 @@ class BMP(object):
 		###
 
 		self.file.seek(0)
-		bmp_header = struct.unpack('<2bIHHI', self.file.read(self.bmp_header_len))
+		bmp_header = struct.unpack('<2sIHHI', self.file.read(self.bmp_header_len))
 
 		if DEBUG: print 'BMP header:', bmp_header
 
 		# Verify magic
-		magic = str(chr(bmp_header[0])) + chr(bmp_header[1])
-		if magic != "BM":
+		if bmp_header[0] != "BM":
 			die("Invalid magic")
 		
 		# Verify size
 		prevpos = self.file.tell()
 		self.file.seek(0, 2)
-		if self.file.tell() != bmp_header[2]:
-			die("Malformed BMP header; file size in header doesn't match file size; {0} (actual) vs {1} (header) bytes".format(self.file.tell(), bmp_header[2]))
+		if self.file.tell() != bmp_header[1]:
+			die("Malformed BMP header; file size in header doesn't match file size; {0} (actual) vs {1} (header) bytes".format(self.file.tell(), bmp_header[1]))
 		self.file.seek(prevpos)
 
 		# Save useful header info
-		self.file_size = bmp_header[2]
-		self.bitmap_offset = bmp_header[5]
+		self.file_size = bmp_header[1]
+		self.bitmap_offset = bmp_header[4]
 
 		###
 		### Read DIB header
