@@ -29,12 +29,12 @@ class BMP(object):
 		file_size = total_header_size + bitmap_size
 		
 		# BMP header: Magic (2 bytes), file size, 2 ignored values, bitmap offset
-		header = struct.pack('<2BIHHI', ord('B'), ord('M'), file_size, 0, 0, total_header_size)
+		header = struct.pack('<2B I 2H I', ord('B'), ord('M'), file_size, 0, 0, total_header_size)
 
 		# DIB V3 header: header size, px width, px height, num of color planes, bpp, compression method,
 		# bitmap data size, horizontal resolution, vertical resolution, number of colors in palette, number of important colors used
 		# Few of these matter, so there are a bunch of default/"magic" numbers here...
-		header += struct.pack('I2iHHII2i2I', 40, width, height, 1, 24, 0, bitmap_size, 0x0B13, 0x0B13, 0, 0)
+		header += struct.pack('I 2i H H I I 2i 2I', 40, width, height, 1, 24, 0, bitmap_size, 0x0B13, 0x0B13, 0, 0)
 
 		return header
 
@@ -65,7 +65,7 @@ class BMP(object):
 		###
 
 		self.file.seek(0)
-		bmp_header = struct.unpack('<2sIHHI', self.file.read(self.bmp_header_len))
+		bmp_header = struct.unpack('<2s I 2H I', self.file.read(self.bmp_header_len))
 
 		if DEBUG: print 'BMP header:', bmp_header
 
@@ -101,11 +101,11 @@ class BMP(object):
 		# Read and parse the header data
 		if self.dib_header_len == 12:
 			# OS/2 V1 header
-			raw_dib_header = struct.unpack('I4H', self.file.read(12))
+			raw_dib_header = struct.unpack('I 4H', self.file.read(12))
 			if DEBUG: print 'OS/2 V1 DIB header'
 		elif self.dib_header_len in (40,108,124):
 			# Windows V3/V4/V5 header - only the necessary parts are read
-			raw_dib_header = struct.unpack('I2i2H', self.file.read(16))
+			raw_dib_header = struct.unpack('I 2i 2H', self.file.read(16))
 			if DEBUG: print 'V3/V4/V5 DIB header'
 		else:
 			die("Unsupported/corrupt DIB header")
