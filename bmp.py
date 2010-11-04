@@ -255,3 +255,27 @@ class BMP(object):
 		""" Invert the colors in the image. """
 		self.bitmap_data = "".join([chr(255-ord(x)) for x in self.bitmap_data])
 		return self
+
+	def grayscale(self):
+		""" Convert the image into a (24-bit) grayscale one, using the Y'UV method. """
+
+		# http://en.wikipedia.org/wiki/YUV
+		Wr = 0.299
+		Wb = 0.114
+		Wg = 0.587
+
+		mod_bitmap = ""
+
+		f = StringIO(self.bitmap_data)
+		for row_num in xrange(0, self.height):
+			for pix in xrange(0, self.width):
+				pixel = struct.unpack("3B", f.read(3))
+				out_pix = chr(int(Wr * pixel[2] + Wg * pixel[1] + Wb * pixel[0]))
+				mod_bitmap += out_pix * 3
+
+			mod_bitmap += chr(0x00) * self.padding_size
+			f.seek(self.padding_size, 1)
+
+		self.bitmap_data = mod_bitmap
+
+		return self
