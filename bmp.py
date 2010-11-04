@@ -299,3 +299,13 @@ class BMP(object):
 		self.bitmap_data = mod_bitmap
 
 		return self
+
+
+	def rotate_90(self):
+		""" Rotates the image 90 degrees to the **** FIXME RE: DIRECTION **** """
+
+		# Create a new header, which matches the new dimensions, file size (in case padding changed), etc.
+		# Since the old width is the new height and vice versa, we put them in in the "wrong" order.
+		self.all_headers = BMP._create_header(self.height, self.width)
+
+		return self
