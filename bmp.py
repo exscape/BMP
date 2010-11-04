@@ -29,7 +29,7 @@ class BMP(object):
 		file_size = total_header_size + bitmap_size
 		
 		# BMP header: Magic (2 bytes), file size, 2 ignored values, bitmap offset
-		header = struct.pack('<2B I 2H I', ord('B'), ord('M'), file_size, 0, 0, total_header_size)
+		header = struct.pack('<2s I 2H I', "BM", file_size, 0, 0, total_header_size)
 
 		# DIB V3 header: header size, px width, px height, num of color planes, bpp, compression method,
 		# bitmap data size, horizontal resolution, vertical resolution, number of colors in palette, number of important colors used
