@@ -18,6 +18,26 @@ def warn(str="FIXME"):
 class BMP(object):
 	bmp_header_len = 14
 
+	@classmethod
+	def _create_header(cls, width, height):
+		""" Internal function used to create headers when changing them is necessary, e.g. when image dimensions change.
+			This function creates both a BMP header and a V3 DIB header, with some values left as defaults (e.g. pixels/meter) """
+
+		total_header_size = cls.bmp_header_len + 40 # V3 len = 40 bytes
+		padding_size = width & 3 # Magic stuff
+		bitmap_size = ((width * 3) + padding_size) * height
+		file_size = total_header_size + bitmap_size
+		
+		# BMP header: Magic (2 bytes), file size, 2 ignored values, bitmap offset
+		header = struct.pack('<2BIHHI', ord('B'), ord('M'), file_size, 0, 0, total_header_size)
+
+		# DIB V3 header: header size, px width, px height, num of color planes, bpp, compression method,
+		# bitmap data size, horizontal resolution, vertical resolution, number of colors in palette, number of important colors used
+		# Few of these matter, so there are a bunch of default/"magic" numbers here...
+		header += struct.pack('I2iHHII2i2I', 40, width, height, 1, 24, 0, bitmap_size, 0x0B13, 0x0B13, 0, 0)
+
+		return header
+
 	def __init__(self, arg=None, open_as_data=False):
 		""" Ugly hack due to Python's lack of method overloading. This constructor can be used in three ways:
 			1) BMP(filename[, False]) -> returns a BMP object with data read from the filename
