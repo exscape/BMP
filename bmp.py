@@ -163,11 +163,15 @@ class BMP(object):
 		# Let's pretend it's a file to make things easy
 		f = StringIO(self.bitmap_data)
 		for row_num in xrange(0, self.height):
+			old_row = f.read(self.width * 3)
 			row = ""
-			for pix in xrange(0, self.width):
-				# Insert each pixel first on its respective row
-				pixel = struct.unpack("3B", f.read(3))
-				row = chr(pixel[0]) + chr(pixel[1]) + chr(pixel[2]) + row
+
+			# Since adding the pixels first to the row takes time, we'll simply read them backwards instead.
+			# *3 is for 24 bits per pixel.
+			# Due to how xrange() works, we need to start at the second-last pixel value, and "end" at -1 -
+			# so that the last "pix" value is 0, not 1.
+			for pix in xrange(self.width-1, -1, -1):
+				row += old_row[pix*3:(pix*3)+3]
 
 			# Skip the padding in the input file
 			f.seek(self.padding_size, 1)
