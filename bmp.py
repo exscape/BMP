@@ -52,20 +52,20 @@ class BMP(object):
 
 		if open_as_data == False:
 			try:
-				self.file = open(arg, 'r')
+				file = open(arg, 'r')
 			except IOError as e:
 				die (str(e))
 
 			print 'Opened file {0}...'.format(arg)
 		else:
-			self.file = StringIO(arg)
+			file = StringIO(arg)
 		
 		###
 		### Read BMP header
 		###
 
-		self.file.seek(0)
-		bmp_header = struct.unpack('<2s I 2H I', self.file.read(self.bmp_header_len))
+		file.seek(0)
+		bmp_header = struct.unpack('<2s I 2H I', file.read(self.bmp_header_len))
 
 		if DEBUG: print 'BMP header:', bmp_header
 
@@ -74,11 +74,11 @@ class BMP(object):
 			die("Invalid magic")
 		
 		# Verify size
-		prevpos = self.file.tell()
-		self.file.seek(0, 2)
-		if self.file.tell() != bmp_header[1]:
-			die("Malformed BMP header; file size in header doesn't match file size; {0} (actual) vs {1} (header) bytes".format(self.file.tell(), bmp_header[1]))
-		self.file.seek(prevpos)
+		prevpos = file.tell()
+		file.seek(0, 2)
+		if file.tell() != bmp_header[1]:
+			die("Malformed BMP header; file size in header doesn't match file size; {0} (actual) vs {1} (header) bytes".format(file.tell(), bmp_header[1]))
+		file.seek(prevpos)
 
 		# Save useful header info
 		self.file_size = bmp_header[1]
@@ -88,30 +88,30 @@ class BMP(object):
 		### Read DIB header
 		###
 
-		self.file.seek(self.bmp_header_len)
-		self.dib_header_len = struct.unpack('I', self.file.read(4))[0]
+		file.seek(self.bmp_header_len)
+		dib_header_len = struct.unpack('I', file.read(4))[0]
 
 		# Check for the one (out of five) header types we don't support
-		if self.dib_header_len == 64:
+		if dib_header_len == 64:
 			die("V2 DIB-header BMPs not supported")
 
 		# Re-read the whole header 
-		self.file.seek(-4, 1)
+		file.seek(-4, 1)
 
 		# Read and parse the header data
-		if self.dib_header_len == 12:
+		if dib_header_len == 12:
 			# OS/2 V1 header
-			raw_dib_header = struct.unpack('I 4H', self.file.read(12))
+			raw_dib_header = struct.unpack('I 4H', file.read(12))
 			if DEBUG: print 'OS/2 V1 DIB header'
-		elif self.dib_header_len in (40,108,124):
+		elif dib_header_len in (40,108,124):
 			# Windows V3/V4/V5 header - only the necessary parts are read
-			raw_dib_header = struct.unpack('I 2i 2H', self.file.read(16))
+			raw_dib_header = struct.unpack('I 2i 2H', file.read(16))
 			if DEBUG: print 'V3/V4/V5 DIB header'
 		else:
 			die("Unsupported/corrupt DIB header")
 
 		# Save the important parts from the DIB header
-		self.dib_header = {'dib_header_len': self.dib_header_len, 'color_planes': raw_dib_header[3], 'width': raw_dib_header[1], 'height': raw_dib_header[2], 'bpp': raw_dib_header[4]}
+		dib_header = {'dib_header_len': dib_header_len, 'color_planes': raw_dib_header[3], 'width': raw_dib_header[1], 'height': raw_dib_header[2], 'bpp': raw_dib_header[4]}
 		self.width = raw_dib_header[1]
 		self.height = raw_dib_header[2]
 		self.bpp = raw_dib_header[4]
@@ -121,7 +121,7 @@ class BMP(object):
 			warn("Bitmap pixel data is stored \"upside down\"")
 
 		# Some basic error checking
-		if self.dib_header["color_planes"] != 1:
+		if dib_header["color_planes"] != 1:
 			die("Invalid/corrupt DIB header; # of color planes must be 1")
 
 		if self.bpp != 24:
@@ -136,23 +136,23 @@ class BMP(object):
 		# ... etc.
 		self.padding_size = self.width & 3 # Magic! (Quite simple, actually.)
 
-		if DEBUG: print 'DIB header:', self.dib_header
+		if DEBUG: print 'DIB header:', dib_header
 
 		# Save both headers as a binary blob that can be used when modifying the bitmap data,
 		# without changing image dimensions (affecting file size) or such
-		self.file.seek(0)
-		self.all_headers = self.file.read(self.bmp_header_len + self.dib_header_len)
+		file.seek(0)
+		self.all_headers = file.read(self.bmp_header_len + dib_header_len)
 
 		###
 		### Read the bitmap data
 		###
 
-		self.file.seek(self.bitmap_offset) 
-		self.bitmap_data = self.file.read()
+		file.seek(self.bitmap_offset) 
+		self.bitmap_data = file.read()
 		if DEBUG: print '{0} bytes of bitmap data read'.format(len(self.bitmap_data))
 		if DEBUG: print 'Padding per row should be {0} bytes'.format(self.padding_size)
 
-		self.file.close()	
+		file.close()	
 
 	def horizontal_flip(self):
 		if self.empty == True:
