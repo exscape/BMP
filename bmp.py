@@ -91,10 +91,6 @@ class BMP(object):
 		file.seek(self.bmp_header_len)
 		dib_header_len = struct.unpack('I', file.read(4))[0]
 
-		# Check for the one (out of five) header types we don't support
-		if dib_header_len == 64:
-			die("V2 DIB-header BMPs not supported")
-
 		# Re-read the whole header 
 		file.seek(-4, 1)
 
@@ -103,10 +99,10 @@ class BMP(object):
 			# OS/2 V1 header
 			raw_dib_header = struct.unpack('I 4H', file.read(12))
 			if DEBUG: print 'OS/2 V1 DIB header'
-		elif dib_header_len in (40,108,124):
-			# Windows V3/V4/V5 header - only the necessary parts are read
+		elif dib_header_len in (40,64,108,124):
+			# OS/2 V2 / Windows V3/V4/V5 header - only the necessary parts are read
 			raw_dib_header = struct.unpack('I 2i 2H', file.read(16))
-			if DEBUG: print 'V3/V4/V5 DIB header'
+			if DEBUG: print 'V2/V3/V4/V5 DIB header'
 		else:
 			die("Unsupported/corrupt DIB header")
 
@@ -211,10 +207,13 @@ class BMP(object):
 		if self.empty == True:
 			die("Attempted to call save() on an empty BMP object!")
 
-		f = open(filename, 'w')
-		f.write(self.all_headers)
-		f.write(self.bitmap_data)
-		f.close()
+		try:
+			f = open(filename, 'w')
+			f.write(self.all_headers)
+			f.write(self.bitmap_data)
+			f.close()
+		except Exception as e:
+			die(str(e))
 
 	def rgb_split(self):
 		"""Splits one BMP object into three; one with only the red channel, one with the green, and one with the blue.
@@ -308,8 +307,13 @@ class BMP(object):
 	def rotate_90(self):
 		""" Rotates the image 90 degrees to the **** FIXME RE: DIRECTION **** """
 
+		old_width = self.width
+		old_height = self.height
+
+		# Swap these two...
+		self.width, self.height = self.height, self.width
+
 		# Create a new header, which matches the new dimensions, file size (in case padding changed), etc.
-		# Since the old width is the new height and vice versa, we put them in in the "wrong" order.
-		self.all_headers = BMP._create_header(self.height, self.width)
+		self.all_headers = BMP._create_header(self.width, self.height)
 
 		return self
