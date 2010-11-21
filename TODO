@@ -2,4 +2,3 @@
 * Rotate 90 and 270 degrees
 * XOR integrated?
 * Crop - img.crop((startx, starty), width, height) ?
-* ...
